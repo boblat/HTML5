@@ -1,0 +1,142 @@
+<!doctype html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<script src="http://code.jquery.com/jquery-1.7.min.js"></script>
+	<link rel="stylesheet" href="http://yui.yahooapis.com/3.3.0/build/cssreset/reset-min.css"/>
+	<script>
+		"use strict";
+		$(function(){
+			var canvas,	ctx, backgroundFillStyle,
+				windowHeight, windowWidth, 				
+				text, textFillStyle, fontStyle,
+				characterWidth, lineHeight,
+				maxLines, maxColumns,
+				maxDelay,
+				aaChars,
+				blankPercent;
+			
+			var init = function(){
+				text = "abcdefghijklmnopqrstuvwxyz1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ`~!@#$%^&*()[]{};,<>.?/\|+=";
+				aaChars = [];
+				characterWidth = 10;
+				lineHeight = 10;
+				windowHeight = $(window).height();
+				windowWidth = $(window).width();
+
+				maxLines = Math.ceil(windowHeight / lineHeight);
+				maxColumns = Math.ceil(windowWidth / characterWidth);
+				maxDelay = 100;
+				blankPercent = 40;
+			};
+			
+			var setCanvas = function(){
+				canvas = $("#maxtrix")[0];
+				ctx = canvas.getContext("2d");
+				
+				ctx.canvas.width = windowWidth;
+				ctx.canvas.height = windowHeight;
+			};
+
+			var setBackground = function(){
+				backgroundFillStyle = ctx.createLinearGradient(0,0, 0,windowHeight);
+			
+  				backgroundFillStyle.addColorStop(0, '#000');  
+				backgroundFillStyle.addColorStop(1, '#030');  
+				
+				ctx.fillStyle = backgroundFillStyle;
+				ctx.fillRect(0, 0, windowWidth, windowHeight);
+			};
+			
+			var setBrush = function(){				
+				textFillStyle = "rgba(0, 100, 0, 50)";
+				fontStyle = "bold 10pt courier";
+				
+				ctx.font = fontStyle;
+				ctx.fillStyle = textFillStyle;
+			};
+			
+			var clearColumn = function(columnNumber){
+				var widthStart = columnNumber * characterWidth;
+				ctx.clearRect(widthStart, 0, characterWidth, windowHeight);
+				
+				ctx.fillStyle = backgroundFillStyle;
+				ctx.fillRect(widthStart, 0, characterWidth, windowHeight);
+			};
+			
+			var getRandomDelay = function(){
+				return Math.floor((Math.random() * maxDelay));
+			};
+			
+			var isBlank = function(){				
+				return Math.floor((Math.random() * 100)) <= blankPercent;
+			};
+			
+			var getRandomChar = function (){	
+				if (isBlank()){ return " "; }
+				var index = Math.floor((Math.random() * text.length));
+					
+				return text[index];
+			};
+			
+			var drawChar = function(c, x, y){
+		
+				ctx.fillText(c, x, y);
+			};
+			
+			var drawBuffer = function(columnNumber){
+				var i;
+				var x = columnNumber * characterWidth;
+				var aChars = aaChars[columnNumber];
+				
+				for (i = 0; i < aChars.length; i += 1){
+					drawChar(aChars[i], x, (i+1) * lineHeight); 
+				}
+			};
+			
+			var drawNewChar = function(columnNumber){
+				var c = getRandomChar();
+				var x = columnNumber * characterWidth;
+				var aChars = aaChars[columnNumber];
+				drawChar(c, x, 0);
+				aChars.splice(0, 0, c);
+			};
+						
+			var drawColumn = function drawColumn(columnNumber){
+				var aChars = aaChars[columnNumber];
+				clearColumn(columnNumber);
+				setBrush();
+				
+				if (aChars.length >= maxLines){
+					aChars.pop();
+				}
+				drawBuffer(columnNumber);
+				drawNewChar(columnNumber);
+				setTimeout(function(){drawColumn(columnNumber);}, getRandomDelay());
+			};
+			
+			var drawCanvas = function(){
+				for (var i = 0; i < maxColumns; i += 1){
+					if (aaChars.length <= i){
+						aaChars.push([]);
+					}
+					drawColumn(i);
+				}
+			};
+			
+			init();
+			setCanvas();
+			setBackground();
+			setBrush();
+			drawCanvas();
+
+			
+		});
+	</script>
+</head>
+<body>
+	<canvas id="maxtrix">
+		Sorry, but no sweets for you!
+	</canvas>
+</body>
+</html>
